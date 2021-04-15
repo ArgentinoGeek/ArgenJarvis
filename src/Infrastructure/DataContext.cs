@@ -15,8 +15,8 @@ namespace Infrastructure
         protected override void OnModelCreating(ModelBuilder builder)
         {
             #region Seeds
-            builder.Entity<Country>().HasData(CountrySeed.GetCountries());
-            builder.Entity<State>().HasData(StateSeed.GetStates());
+            //builder.Entity<Country>().HasData(CountrySeed.GetCountries());
+            //builder.Entity<State>().HasData(StateSeed.GetStates());
             #endregion
 
             #region Fluent Api
@@ -48,7 +48,9 @@ namespace Infrastructure
         }
 
         // Entities
-        public DbSet<Country> Countries { get; set; }
-        public DbSet<State> States { get; set; }
+        public DbSet<Configuration> Configurations { get; set; }
+        public DbSet<Level> Levels { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Viewer> Viewers { get; set; }
     }
 }
