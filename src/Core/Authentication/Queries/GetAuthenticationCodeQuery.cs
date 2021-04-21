@@ -24,8 +24,8 @@ namespace Core.Authentication.Queries
         {
             // Get configuration values from the database
 
-            var clientId = _configurationRepository.Get().FirstOrDefault(x => x.Key.Equals("TwitchClientId")).Value;
-            var redirectUri = _configurationRepository.Get().FirstOrDefault(x => x.Key.Equals("TwitchRedirectUri")).Value;
+            var clientId = _configurationRepository.Get().FirstOrDefault(x => x.Key.Equals("TwitchClientId") && x.IsEnabled).Value;
+            var redirectUri = _configurationRepository.Get().FirstOrDefault(x => x.Key.Equals("TwitchRedirectUri") && x.IsEnabled).Value;
 
             using (var client = new HttpClient())
             {

@@ -1,4 +1,5 @@
-﻿using Core.Authentication.Queries;
+﻿using Core.Authentication.Commands;
+using Core.Authentication.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,13 +24,15 @@ namespace WebApi.Controllers
         [HttpGet("init")]
         public async Task<IActionResult> Initialization()
         {
-            return Ok(await _mediator.Send(new GetAuthenticationCodeQuery()));
+            await _mediator.Send(new GetAuthenticationCodeQuery());
+
+            return Ok();
         }
 
         [HttpGet("validation")]
         public async Task<IActionResult> Validation(string code)
         {
-            return Ok();
+            return Ok(await _mediator.Send(new SaveAccessTokenCommand(code)));
         }
     }
 }
