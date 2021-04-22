@@ -24,9 +24,9 @@ namespace WebApi.Controllers
         [HttpGet("init")]
         public async Task<IActionResult> Initialization()
         {
-            await _mediator.Send(new GetAuthenticationCodeQuery());
+            var initializationUrl = await _mediator.Send(new GetAuthenticationCodeQuery());
 
-            return Ok();
+            return Ok(initializationUrl);
         }
 
         [HttpGet("validation")]
