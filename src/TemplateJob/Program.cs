@@ -92,7 +92,7 @@ namespace TemplateJob
 
         private static void Client_OnUserJoined(object sender, OnUserJoinedArgs e)
         {
-            EnsureViewerExists(e.Username).Wait();
+            EnsureViewerExists(e.Username, shouldUpdateDateJoined: true).Wait();
             Console.WriteLine($"[{DateTime.Now}] {e.Username} has Joined");
         }
 
@@ -144,11 +144,11 @@ namespace TemplateJob
         } 
         #endregion
 
-        private static async Task EnsureViewerExists(string username)
+        private static async Task EnsureViewerExists(string username, bool shouldUpdateDateJoined = false)
         {
             var mediator = _serviceProvider.GetRequiredService<IMediator>();
 
-            await mediator.Send(new EnsureViewerExistsCommand(username));
+            await mediator.Send(new EnsureViewerExistsCommand(username, shouldUpdateDateJoined));
         }
 
         private static async Task UpdateSecondsViewing(string username)

@@ -8,12 +8,14 @@ namespace Core.Viewer.Commands
 {
     public class EnsureViewerExistsCommand : IRequest<Unit>
     {
-        public EnsureViewerExistsCommand(string userName)
+        public EnsureViewerExistsCommand(string userName, bool shouldUpdateDateJoined = false)
         {
             UserName = userName;
+            ShouldUpdateDateJoined = shouldUpdateDateJoined;
         }
 
         public string UserName { get; set; }
+        public bool ShouldUpdateDateJoined { get; set; }
     }
 
     public class EnsureViewerExistsCommandHandler : IRequestHandler<EnsureViewerExistsCommand, Unit>
@@ -47,7 +49,11 @@ namespace Core.Viewer.Commands
             {
                 await _viewerRepository.Update(viewer);
 
-                viewer.DateJoined = currentDate;
+                if (request.ShouldUpdateDateJoined)
+                {
+                    viewer.DateJoined = currentDate; 
+                }
+
                 viewer.LastUpdate = currentDate;
             }
 
