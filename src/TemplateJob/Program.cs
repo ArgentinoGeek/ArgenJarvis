@@ -53,21 +53,13 @@ namespace TemplateJob
             // Open the url in a new browser tab
             Process.Start("explorer.exe", loginUrl);
 
-            // Get last access token LastUpdate date if exists
-            // Compare the stored LastUpdate date to know if it was updated or not
-            // After getting the new AccessToken, Connect to the chat
-
             TwitchChatbotName = await GetValueForAsync(TwitchChatbotNameKey);
             TwitchChannelName = await GetValueForAsync(TwitchChannelNameKey);
             TwitchAccessToken = await GetValueForAsync(TwitchAccessTokenKey);
 
             var credentials = new ConnectionCredentials(TwitchChatbotName, TwitchAccessToken);
 
-            var clientOptions = new ClientOptions
-            {
-                //MessagesAllowedInPeriod = 750,
-                //ThrottlingPeriod = TimeSpan.FromSeconds(30)
-            };
+            var clientOptions = new ClientOptions();
             WebSocketClient customClient = new WebSocketClient(clientOptions);
             client = new TwitchClient(customClient);
             client.Initialize(credentials, TwitchChannelName);

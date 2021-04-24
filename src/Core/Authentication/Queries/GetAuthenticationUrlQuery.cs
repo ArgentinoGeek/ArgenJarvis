@@ -1,26 +1,25 @@
 ﻿using MediatR;
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Core.Authentication.Queries
 {
-    public class GetAuthenticationCodeQuery : IRequest<Uri>
+    public class GetAuthenticationUrlQuery : IRequest<Uri>
     {
     }
 
-    public class GetAuthenticationCodeQueryHandler : IRequestHandler<GetAuthenticationCodeQuery, Uri>
+    public class GetAuthenticationUrlQueryHandler : IRequestHandler<GetAuthenticationUrlQuery, Uri>
     {
         private readonly IRepository<Domain.Entities.Configuration> _configurationRepository;
 
-        public GetAuthenticationCodeQueryHandler(IRepository<Domain.Entities.Configuration> configurationRepository)
+        public GetAuthenticationUrlQueryHandler(IRepository<Domain.Entities.Configuration> configurationRepository)
         {
             _configurationRepository = configurationRepository;
         }
 
-        public async Task<Uri> Handle(GetAuthenticationCodeQuery request, CancellationToken cancellationToken)
+        public async Task<Uri> Handle(GetAuthenticationUrlQuery request, CancellationToken cancellationToken)
         {
             // Get configuration values from the database
 
