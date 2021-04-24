@@ -8,6 +8,7 @@ namespace Domain.Entities
         public DateTime DateJoined { get; set; }
         public int Points { get; set; }
         public int SecondsViewing { get; set; }
+        public int LevelId { get; set; }
         public Level Level { get; set; }
     }
 }

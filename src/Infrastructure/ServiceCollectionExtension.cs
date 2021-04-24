@@ -45,7 +45,7 @@ namespace Infrastructure
 
         private static void ConfigureForSqlServer(IServiceCollection services)
         {
-            services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SqlServerConnection"), x => x.EnableRetryOnFailure()));
+            services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SqlServerConnection"), x => x.EnableRetryOnFailure()), ServiceLifetime.Transient);
         }
 
         private static void ConfigureForInMemory(IServiceCollection services)

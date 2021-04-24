@@ -1,6 +1,7 @@
 ﻿using Core;
 using Core.Configuration.Queries;
-using Core.Country.Queries;
+using Core.Message.Commands;
+using Core.Viewer.Commands;
 using Infrastructure;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -15,12 +16,15 @@ using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 
 namespace TemplateJob
 {
     class Program
     {
+        private static IServiceProvider _serviceProvider;
+
         static TwitchClient client;
 
         private static string TwitchChatbotName { get; set; }
@@ -36,6 +40,7 @@ namespace TemplateJob
             using IHost host = CreateHostBuilder(args).Build();
             await host.StartAsync();
             await Task.Delay(1000);
+            _serviceProvider = host.Services;
 
             // Application code should start here.
             Console.ForegroundColor = ConsoleColor.Green;
@@ -43,7 +48,7 @@ namespace TemplateJob
             Console.WriteLine();
 
             // Get login url
-            string loginUrl = await GetLoginUrl(host.Services);
+            string loginUrl = await GetLoginUrl();
 
             // Open the url in a new browser tab
             Process.Start("explorer.exe", loginUrl);
@@ -52,9 +57,9 @@ namespace TemplateJob
             // Compare the stored LastUpdate date to know if it was updated or not
             // After getting the new AccessToken, Connect to the chat
 
-            TwitchChatbotName = await GetValueForAsync(host.Services, TwitchChatbotNameKey);
-            TwitchChannelName = await GetValueForAsync(host.Services, TwitchChannelNameKey);
-            TwitchAccessToken = await GetValueForAsync(host.Services, TwitchAccessTokenKey);
+            TwitchChatbotName = await GetValueForAsync(TwitchChatbotNameKey);
+            TwitchChannelName = await GetValueForAsync(TwitchChannelNameKey);
+            TwitchAccessToken = await GetValueForAsync(TwitchAccessTokenKey);
 
             var credentials = new ConnectionCredentials(TwitchChatbotName, TwitchAccessToken);
 
@@ -68,7 +73,11 @@ namespace TemplateJob
             client.Initialize(credentials, TwitchChannelName);
 
             client.OnConnected += Client_OnConnected;
+            client.OnDisconnected += Client_OnDisconected;
+            client.OnUserJoined += Client_OnUserJoined;
+            client.OnUserLeft += Client_OnUserLeft;
             client.OnMessageReceived += Client_OnMessageReceived;
+            client.OnChatCommandReceived += Client_OnChatCommandReceived;
 
             client.Connect();
 
@@ -84,21 +93,49 @@ namespace TemplateJob
             client.SendMessage(TwitchChannelName, "Hey guys! I am a bot connected via TwitchLib!");
         }
 
+        private static void Client_OnDisconected(object sender, OnDisconnectedEventArgs e)
+        {
+            client.SendMessage(TwitchChannelName, "Chatbot disconnected!");
+        }
+
+        private static void Client_OnUserJoined(object sender, OnUserJoinedArgs e)
+        {
+            EnsureViewerExists(e.Username).Wait();
+            Console.WriteLine($"[{DateTime.Now}] {e.Username} has Joined");
+        }
+
+        private static void Client_OnUserLeft(object sender, OnUserLeftArgs e)
+        {
+            UpdateSecondsViewing(e.Username).Wait();
+            Console.WriteLine($"[{DateTime.Now}] {e.Username} has Left");
+        }
+
         private static void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
             var message = e.ChatMessage.Message;
 
+            EnsureViewerExists(e.ChatMessage.Username).Wait();
+
             Console.WriteLine($"[{DateTime.Now}] {e.ChatMessage.DisplayName}: {message}");
+            SaveNewMessage(e.ChatMessage.Username, message).Wait();
+            AddPointsToViewer(e.ChatMessage.Username, 1).Wait();
         }
 
-        private static async Task<string> GetValueForAsync(IServiceProvider services, string key)
+        private static void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
         {
-            var mediator = services.GetRequiredService<IMediator>();
+            var commandName = e.Command.CommandText;
+            var arguments = e.Command.ArgumentsAsList;
+        }
+
+        #region Authentication
+        private static async Task<string> GetValueForAsync(string key)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
 
             return await mediator.Send(new GetConfigurationQuery(key));
         }
 
-        private static async Task<string> GetLoginUrl(IServiceProvider services)
+        private static async Task<string> GetLoginUrl()
         {
             var loginUrl = string.Empty;
 
@@ -112,6 +149,35 @@ namespace TemplateJob
             }
 
             return loginUrl;
+        } 
+        #endregion
+
+        private static async Task EnsureViewerExists(string username)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            await mediator.Send(new EnsureViewerExistsCommand(username));
+        }
+
+        private static async Task UpdateSecondsViewing(string username)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            await mediator.Send(new UpdateSecondsViewingCommand(username));
+        }
+
+        private static async Task SaveNewMessage(string username, string message)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            await mediator.Send(new SaveNewMessageCommand(username, message));
+        }
+
+        private static async Task AddPointsToViewer(string username, int pointsToAdd)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            await mediator.Send(new AddPointsToViewerCommand(username, pointsToAdd));
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args)

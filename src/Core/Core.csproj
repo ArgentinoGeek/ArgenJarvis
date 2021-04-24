@@ -16,6 +16,10 @@
 
   <ItemGroup>
     <Folder Include="Configuration\DTOs\" />
+    <Folder Include="Message\DTOs\" />
+    <Folder Include="Message\Queries\" />
+    <Folder Include="Viewer\DTOs\" />
+    <Folder Include="Viewer\Queries\" />
   </ItemGroup>
 
 </Project>
