@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "WebApi\WebApi.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Jobs", "Jobs", "{1DD5B6BD-6DAA-486C-90F8-AB7BD18D38E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateJob", "TemplateJob\TemplateJob.csproj", "{A8C885C9-9EB9-4F1B-BFDC-9942A1E0F807}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TemplateJob", "TemplateJob\TemplateJob.csproj", "{A8C885C9-9EB9-4F1B-BFDC-9942A1E0F807}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -26,7 +26,7 @@ namespace Core.Configuration.Queries
 
         public async Task<string> Handle(GetConfigurationQuery request, CancellationToken cancellationToken)
         {
-            return await Task.FromResult(_configurationRepository.Get().FirstOrDefault(x => x.Key.Equals(request.Key)).Value);
+            return await Task.FromResult(_configurationRepository.Get().FirstOrDefault(x => x.Key.Equals(request.Key) && x.IsEnabled).Value);
         }
     }
 }
