@@ -11,13 +11,12 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="NetCoreAudio" Version="1.6.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Configuration\DTOs\" />
-    <Folder Include="Message\DTOs\" />
-    <Folder Include="Message\Queries\" />
     <Folder Include="Viewer\DTOs\" />
     <Folder Include="Viewer\Queries\" />
   </ItemGroup>

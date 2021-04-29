@@ -1,6 +1,7 @@
 ﻿using Core;
 using Core.Configuration.Queries;
 using Core.Message.Commands;
+using Core.Message.Queries;
 using Core.Viewer.Commands;
 using Infrastructure;
 using MediatR;
@@ -53,6 +54,8 @@ namespace TemplateJob
             // Open the url in a new browser tab
             Process.Start("explorer.exe", loginUrl);
 
+            await Task.Delay(3000);
+
             TwitchChatbotName = await GetValueForAsync(TwitchChatbotNameKey);
             TwitchChannelName = await GetValueForAsync(TwitchChannelNameKey);
             TwitchAccessToken = await GetValueForAsync(TwitchAccessTokenKey);
@@ -70,6 +73,7 @@ namespace TemplateJob
             client.OnUserLeft += Client_OnUserLeft;
             client.OnMessageReceived += Client_OnMessageReceived;
             client.OnChatCommandReceived += Client_OnChatCommandReceived;
+            client.OnNewSubscriber += Client_OnNewSubscriber;
 
             client.Connect();
 
@@ -117,6 +121,14 @@ namespace TemplateJob
         {
             var commandName = e.Command.CommandText;
             var arguments = e.Command.ArgumentsAsList;
+        }
+
+        private static void Client_OnNewSubscriber(object sender, OnNewSubscriberArgs e)
+        {
+            var message = e.Subscriber.ResubMessage;
+            var messageLanguage = GetMessageLanguage(message).Result;
+
+            ReadMessage(message, messageLanguage).Wait();
         }
 
         #region Authentication
@@ -170,6 +182,20 @@ namespace TemplateJob
             var mediator = _serviceProvider.GetRequiredService<IMediator>();
 
             await mediator.Send(new AddPointsToViewerCommand(username, pointsToAdd));
+        }
+
+        private static async Task ReadMessage(string message, string language)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            await mediator.Send(new ReadMessageQuery(message, language));
+        }
+
+        private static async Task<string> GetMessageLanguage(string message)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            return await mediator.Send(new GetMessageLanguageCodeQuery(message));
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args)
