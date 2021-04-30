@@ -125,7 +125,7 @@ namespace TemplateJob
 
         private static void Client_OnNewSubscriber(object sender, OnNewSubscriberArgs e)
         {
-            var message = e.Subscriber.ResubMessage;
+            var message = e.Subscriber.SystemMessageParsed;
             var messageLanguage = GetMessageLanguage(message).Result;
 
             ReadMessage(message, messageLanguage).Wait();
