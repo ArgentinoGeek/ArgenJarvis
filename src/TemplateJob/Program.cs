@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Commands;
 using Core.Configuration.Queries;
 using Core.Message.Commands;
 using Core.Message.Queries;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -38,16 +40,20 @@ namespace TemplateJob
             const string TwitchChannelNameKey = "TwitchChannelName";
             const string TwitchAccessTokenKey = "TwitchAccessToken";
 
+            #region Dependency Injection initialization
             using IHost host = CreateHostBuilder(args).Build();
             await host.StartAsync();
             await Task.Delay(1000);
-            _serviceProvider = host.Services;
+            _serviceProvider = host.Services; 
+            #endregion
 
             // Application code should start here.
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.Title = "ArgenJarvis";
             Console.WriteLine("Starting...");
             Console.WriteLine();
 
+            #region Twitch Authentication
             // Get login url
             string loginUrl = await GetLoginUrl();
 
@@ -58,7 +64,8 @@ namespace TemplateJob
 
             TwitchChatbotName = await GetValueForAsync(TwitchChatbotNameKey);
             TwitchChannelName = await GetValueForAsync(TwitchChannelNameKey);
-            TwitchAccessToken = await GetValueForAsync(TwitchAccessTokenKey);
+            TwitchAccessToken = await GetValueForAsync(TwitchAccessTokenKey); 
+            #endregion
 
             var credentials = new ConnectionCredentials(TwitchChatbotName, TwitchAccessToken);
 
@@ -84,6 +91,7 @@ namespace TemplateJob
             await host.StopAsync();
         }
 
+        #region Event Handlers
         private static void Client_OnConnected(object sender, OnConnectedArgs e)
         {
             client.SendMessage(TwitchChannelName, "Hey guys! I am a bot connected via TwitchLib!");
@@ -121,6 +129,10 @@ namespace TemplateJob
         {
             var commandName = e.Command.CommandText;
             var arguments = e.Command.ArgumentsAsList;
+            var argumentsAsString = e.Command.ArgumentsAsString;
+            var userName = e.Command.ChatMessage.DisplayName;
+
+            ExecuteCommand(commandName, userName, arguments, argumentsAsString).Wait();
         }
 
         private static void Client_OnNewSubscriber(object sender, OnNewSubscriberArgs e)
@@ -129,7 +141,8 @@ namespace TemplateJob
             var messageLanguage = GetMessageLanguage(message).Result;
 
             ReadMessage(message, messageLanguage).Wait();
-        }
+        } 
+        #endregion
 
         #region Authentication
         private static async Task<string> GetValueForAsync(string key)
@@ -153,9 +166,10 @@ namespace TemplateJob
             }
 
             return loginUrl;
-        } 
+        }
         #endregion
 
+        #region Private methods
         private static async Task EnsureViewerExists(string username, bool shouldUpdateDateJoined = false)
         {
             var mediator = _serviceProvider.GetRequiredService<IMediator>();
@@ -197,6 +211,19 @@ namespace TemplateJob
 
             return await mediator.Send(new GetMessageLanguageCodeQuery(message));
         }
+
+        private static async Task ExecuteCommand(string commandName, string userName, List<string> arguments, string argumentsAsString)
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            var response = await new CommandHandler(mediator).Handle(commandName, userName, arguments, argumentsAsString);
+
+            if (!string.IsNullOrWhiteSpace(response))
+            {
+                client.SendMessage(TwitchChannelName, response);
+            }
+        } 
+        #endregion
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
