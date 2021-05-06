@@ -19,6 +19,8 @@ namespace Core.Commands
             {
                 case "argenpoints":
                     return new ArgenPointsCommand(_mediator).Execute(commandName, userName, arguments, argumentsAsString);
+                case "t":
+                    return new TranslateTextCommand(_mediator).Execute(commandName, userName, arguments, argumentsAsString);
                 default:
                     return Task.FromResult(string.Empty);
             }
