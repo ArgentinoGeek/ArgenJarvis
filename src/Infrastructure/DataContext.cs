@@ -51,6 +51,7 @@ namespace Infrastructure
         public DbSet<Configuration> Configurations { get; set; }
         public DbSet<Level> Levels { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<TimerMessage> TimerMessages { get; set; }
         public DbSet<Viewer> Viewers { get; set; }
     }
 }

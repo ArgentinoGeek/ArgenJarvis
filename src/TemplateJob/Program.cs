@@ -3,6 +3,8 @@ using Core.Commands;
 using Core.Configuration.Queries;
 using Core.Message.Commands;
 using Core.Message.Queries;
+using Core.TimerMessage.Commands;
+using Core.TimerMessage.DTOs;
 using Core.Viewer.Commands;
 using Infrastructure;
 using MediatR;
@@ -14,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -85,6 +88,9 @@ namespace TemplateJob
             client.Connect();
 
             Console.WriteLine($"Connected!");
+
+            await InitializeTimerMessages();
+
             Console.ReadKey();
 
             // After this line, the code will not be executed
@@ -140,6 +146,7 @@ namespace TemplateJob
             var message = e.Subscriber.SystemMessageParsed;
             var messageLanguage = GetMessageLanguage(message).Result;
 
+            AddPointsToViewer(e.Subscriber.DisplayName, 100).Wait();
             ReadMessage(message, messageLanguage).Wait();
         } 
         #endregion
@@ -222,7 +229,34 @@ namespace TemplateJob
             {
                 client.SendMessage(TwitchChannelName, response);
             }
-        } 
+        }
+
+        private static async Task InitializeTimerMessages()
+        {
+            var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+            var timerMessages = await mediator.Send(new GetTimerMessagesQuery());
+
+            foreach (var timerMessage in timerMessages)
+            {
+                var random = new Random((int)DateTime.Now.Ticks);
+                var timer = new Timer(On_TimerCallback, timerMessage, random.Next(1000, 3000), timerMessage.PeriodInMilliseconds);
+            }
+        }
+
+        private static void On_TimerCallback(object state)
+        {
+            var timerMessage = (TimerMessageDto)state;
+            Console.WriteLine($"[{DateTime.Now}] {timerMessage.Content}");
+            SendMessageToTheChat(timerMessage.Content);
+
+            Console.ReadKey();
+        }
+
+        private static void SendMessageToTheChat(string message)
+        {
+            client.SendMessage(TwitchChannelName, message);
+        }
         #endregion
 
         public static IHostBuilder CreateHostBuilder(string[] args)
